@@ -2,6 +2,7 @@ import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { RouterLink } from '@angular/router';
 import { Firestore, collection, query, where, getDocs, limit, orderBy } from '@angular/fire/firestore';
 import { AuthService } from '../../services/auth.service';
 import { User, Post } from '../../models';
@@ -9,7 +10,7 @@ import { User, Post } from '../../models';
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, RouterLink],
   templateUrl: './search.component.html',
   styleUrl: './search.component.scss'
 })

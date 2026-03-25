@@ -12,7 +12,7 @@
     <!-- User Results -->
     <div class="mt-4 space-y-2">
       @for (user of filteredUsers(); track user.uid) {
-        <div class="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer">
+        <div [routerLink]="['/profile', user.uid]" class="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer">
           <img
             [src]="user.profileImageUrl || 'assets/default-profile.png'"
             alt="Profile"
