@@ -1,0 +1,14 @@
+@if (stories().length > 0) {
+  <div class="bg-white border border-gray-300 p-4 mb-4 overflow-x-auto">
+    <div class="flex gap-4">
+      @for (story of stories(); track story.id) {
+        <div class="flex flex-col items-center cursor-pointer">
+          <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-pink-600 p-0.5">
+            <img [src]="story.image" alt="Story" class="w-full h-full rounded-full border-2 border-white object-cover" />
+          </div>
+          <p class="text-xs mt-1 truncate w-16 text-center">{{ story.username }}</p>
+        </div>
+      }
+    </div>
+  </div>
+}

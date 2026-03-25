@@ -1,0 +1,17 @@
+<div class="min-h-screen bg-gray-50">
+  <app-navbar />
+  <div class="max-w-2xl mx-auto pt-20 pb-8">
+    <app-story-bar />
+    @if (postService.isLoading()) {
+      <div class="text-center py-8">Loading...</div>
+    }
+    @for (post of postService.posts(); track post.id) {
+      <app-post-item [post]="post" />
+    }
+    @if (!postService.isLoading() && postService.posts().length === 0) {
+      <div class="text-center py-8 text-gray-500">
+        No posts yet. Follow some users to see their posts!
+      </div>
+    }
+  </div>
+</div>

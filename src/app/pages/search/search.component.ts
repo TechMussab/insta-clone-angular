@@ -1,48 +1,49 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { Firestore, collection, query, where, getDocs, limit } from '@angular/fire/firestore';
+import { AuthService } from '../../services/auth.service';
+import { User } from '../../models';
 
 @Component({
   selector: 'app-search',
   standalone: true,
   imports: [CommonModule, FormsModule, NavbarComponent],
-  template: `
-    <div class="min-h-screen bg-gray-50">
-      <app-navbar />
-      <div class="max-w-2xl mx-auto pt-20 pb-8 px-4">
-        <input
-          type="text"
-          [(ngModel)]="searchQuery"
-          (input)="onSearch()"
-          placeholder="Search users..."
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-        />
-        <div class="mt-4">
-          @for (user of filteredUsers(); track user.uid) {
-            <div class="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer">
-              <img
-                [src]="user.profileImageUrl || 'https://via.placeholder.com/40'"
-                alt="Profile"
-                class="w-10 h-10 rounded-full"
-              />
-              <div>
-                <p class="font-semibold">{{ user.username }}</p>
-                <p class="text-sm text-gray-500">{{ user.bio }}</p>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
-  `
+  templateUrl: './search.component.html',
+  styleUrl: './search.component.scss'
 })
 export class SearchComponent {
   searchQuery = '';
-  filteredUsers = signal<any[]>([]);
+  filteredUsers = signal<User[]>([]);
 
-  onSearch() {
-    // TODO: Implement Firestore search
-    console.log('Searching for:', this.searchQuery);
+  private firestore = inject(Firestore);
+  private authService = inject(AuthService);
+
+  async onSearch() {
+    const queryText = this.searchQuery.trim();
+    
+    if (!queryText) {
+      this.filteredUsers.set([]);
+      return;
+    }
+
+    // Perform a prefix search logic similar to the Android version
+    const usersRef = collection(this.firestore, 'users');
+    const q = query(
+      usersRef,
+      where('username', '>=', queryText),
+      where('username', '<=', queryText + '\uf8ff'),
+      limit(20)
+    );
+
+    const querySnapshot = await getDocs(q);
+    const currentUserId = this.authService.currentUser()?.uid;
+
+    const users = querySnapshot.docs
+      .map(doc => doc.data() as User)
+      .filter(user => user.uid !== currentUserId); // Don't show yourself in search
+
+    this.filteredUsers.set(users);
   }
 }
