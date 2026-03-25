@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "ed141712-1b70-4346-8c28-1ba2f997c194"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -27,6 +28,7 @@
             "styles": [
               "src/styles.css"
             ],
+            "inlineStyleLanguage": "css",
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
