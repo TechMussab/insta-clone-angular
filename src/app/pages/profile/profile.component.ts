@@ -15,7 +15,6 @@ import { AuthService } from '../../services/auth.service';
 })
 export class ProfileComponent implements OnInit {
   private firestore = inject(Firestore);
-  private route = inject(ActivatedRoute);
   public authService = inject(AuthService);
 
   username = signal('');
@@ -25,6 +24,8 @@ export class ProfileComponent implements OnInit {
   followerCount = signal(0);
   followingCount = signal(0);
   posts = signal<Post[]>([]);
+
+  constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
