@@ -1,33 +1,43 @@
-import { Injectable, signal } from '@angular/core';
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, user } from '@angular/fire/auth';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, user, authState } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, getDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { User } from '../models';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { switchMap, of, from, map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  currentUser = signal<User | null>(null);
-  user$;
+  private auth = inject(Auth);
+  private firestore = inject(Firestore);
+  private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
-  constructor(
-    private auth: Auth,
-    private firestore: Firestore,
-    private router: Router
-  ) {
-    this.user$ = user(this.auth);
-    this.user$.subscribe(async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(this.firestore, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          this.currentUser.set(userDoc.data() as User);
+  // Observable for guards to use
+  user$ = user(this.auth);
+
+  // Signal for components to use. 
+  currentUser = toSignal(
+    this.user$.pipe(
+      switchMap(firebaseUser => {
+        if (!firebaseUser) {
+          this.updateCache(null);
+          return of(null);
         }
-      } else {
-        this.currentUser.set(null);
-      }
-    });
-  }
+        return from(getDoc(doc(this.firestore, 'users', firebaseUser.uid))).pipe(
+          map(snap => {
+            const userData = snap.exists() ? snap.data() as User : null;
+            this.updateCache(userData);
+            return userData;
+          })
+        );
+      })
+    ),
+    { initialValue: this.getInitialUser() }
+  );
 
   async signUp(email: string, password: string, username: string, bio?: string) {
     const credential = await createUserWithEmailAndPassword(this.auth, email, password);
@@ -39,7 +49,6 @@ export class AuthService {
       profileImageUrl: ''
     };
     await setDoc(doc(this.firestore, 'users', user.uid), user);
-    this.currentUser.set(user);
     this.router.navigate(['/home']);
   }
 
@@ -50,7 +59,23 @@ export class AuthService {
 
   async logout() {
     await signOut(this.auth);
-    this.currentUser.set(null);
+    this.updateCache(null);
     this.router.navigate(['/login']);
+  }
+
+  private getInitialUser(): User | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    const cached = localStorage.getItem('user_session');
+    return cached ? JSON.parse(cached) : null;
+  }
+
+  private updateCache(userData: User | null) {
+    if (isPlatformBrowser(this.platformId)) {
+      if (userData) {
+        localStorage.setItem('user_session', JSON.stringify(userData));
+      } else {
+        localStorage.removeItem('user_session');
+      }
+    }
   }
 }

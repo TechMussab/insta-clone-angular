@@ -1,14 +1,15 @@
-import { Injectable, signal } from '@angular/core';
-import { Firestore, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, arrayUnion, arrayRemove, getDocs } from '@angular/fire/firestore';
+import { Injectable, signal, OnDestroy } from '@angular/core';
+import { Firestore, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, arrayUnion, arrayRemove, getDocs, Unsubscribe } from '@angular/fire/firestore';
 import { Post, Comment } from '../models';
 import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PostService {
+export class PostService implements OnDestroy {
   posts = signal<Post[]>([]);
   isLoading = signal(false);
+  private feedUnsubscribe?: Unsubscribe;
 
   constructor(
     private firestore: Firestore,
@@ -17,7 +18,11 @@ export class PostService {
 
   async loadFeed() {
     const currentUser = this.authService.currentUser();
+    console.log("debug: ",currentUser);
     if (!currentUser) return;
+
+    // Unsubscribe from existing feed if active to prevent leaks
+    if (this.feedUnsubscribe) this.feedUnsubscribe();
 
     this.isLoading.set(true);
 
@@ -26,6 +31,7 @@ export class PostService {
       collection(this.firestore, 'follows'),
       where('followerId', '==', currentUser.uid)
     );
+    
     const followsSnapshot = await getDocs(followsQuery);
     const followingIds = followsSnapshot.docs.map(doc => doc.data()['followingId']);
     followingIds.push(currentUser.uid); // Include own posts
@@ -33,18 +39,28 @@ export class PostService {
     // Get posts from followed users
     const postsQuery = query(
       collection(this.firestore, 'posts'),
-      where('userId', 'in', followingIds.slice(0, 10)), // Firestore 'in' limit is 10
+      // where('userId', 'in', followingIds.slice(0, 10)), // Firestore 'in' limit is 10
+      where('userId', 'in', followingIds),
       orderBy('timestamp', 'desc')
     );
 
-    onSnapshot(postsQuery, (snapshot) => {
+    // Store the unsubscribe function
+    this.feedUnsubscribe = onSnapshot(postsQuery, (snapshot) => {
       const posts = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Post));
       this.posts.set(posts);
       this.isLoading.set(false);
+    }, (error) => {
+      console.error("Error loading feed:", error);
+      this.isLoading.set(false);
     });
+  }
+
+  ngOnDestroy() {
+    // Ensure clean up when the service/app is destroyed
+    if (this.feedUnsubscribe) this.feedUnsubscribe();
   }
 
   async createPost(postImage: string, caption: string) {
