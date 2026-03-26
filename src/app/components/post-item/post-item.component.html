@@ -2,12 +2,12 @@
   <div class="flex items-center justify-between p-3">
     <div class="flex items-center gap-3">
       <img
-        [src]="post.profileImage || 'https://via.placeholder.com/32'"
+        [src]="userProfile()?.profileImageUrl || post.profileImage || 'https://via.placeholder.com/32'"
         alt="Profile"
         class="w-8 h-8 rounded-full"
       />
       <a [routerLink]="['/profile', post.userId]" class="font-semibold text-sm">
-        {{ post.username }}
+        {{ userProfile()?.username || post.username }}
       </a>
     </div>
   </div>
@@ -34,9 +34,39 @@
     </div>
     <p class="font-semibold text-sm mb-2">{{ post.likedBy.length }} likes</p>
     <p class="text-sm">
-      <a [routerLink]="['/profile', post.userId]" class="font-semibold">{{ post.username }}</a>
+      <a [routerLink]="['/profile', post.userId]" class="font-semibold">{{ userProfile()?.username || post.username }}</a>
       {{ post.caption }}
     </p>
-    <p class="text-gray-500 text-xs mt-2">{{ getTimeAgo(post.timestamp) }}</p>
+
+    <!-- Comments List -->
+    @if (comments().length > 0) {
+      <div class="mt-2 space-y-1">
+        @for (comment of comments(); track comment.id) {
+          <p class="text-sm">
+            <span class="font-semibold">{{ comment.username }}</span> {{ comment.text }}
+          </p>
+        }
+      </div>
+    }
+
+    <p class="text-gray-500 text-xs mt-2 mb-3">{{ getTimeAgo(post.timestamp) }}</p>
+
+    <!-- Comment Input -->
+    <form (ngSubmit)="onAddComment()" class="flex gap-2 border-t border-gray-100 pt-3">
+      <input
+        type="text"
+        [(ngModel)]="commentText"
+        name="commentText"
+        placeholder="Add a comment..."
+        class="flex-1 text-sm outline-none focus:ring-0"
+      />
+      <button 
+        type="submit" 
+        [disabled]="!commentText.trim()"
+        class="text-blue-500 font-semibold text-sm disabled:opacity-50"
+      >
+        Post
+      </button>
+    </form>
   </div>
 </div>
