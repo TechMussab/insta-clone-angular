@@ -1,4 +1,4 @@
-import { Component, Input, signal, inject, OnInit } from '@angular/core';
+import { Component, Input, signal, inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -14,7 +14,8 @@ import { PostDetailComponent } from '../post-details/post-detail.component';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule, MatDialogModule],
   templateUrl: './post-item.component.html',
-  styleUrl: './post-item.component.scss'
+  styleUrl: './post-item.component.scss',
+  encapsulation: ViewEncapsulation.None
 })
 export class PostItemComponent implements OnInit {
   @Input({ required: true }) post!: Post;
@@ -44,7 +45,8 @@ export class PostItemComponent implements OnInit {
       },
       width: '100%',
       maxWidth: '600px',
-      maxHeight: '90vh'
+      maxHeight: '90vh',
+      backdropClass: 'insta-backdrop'
     });
   }
 
