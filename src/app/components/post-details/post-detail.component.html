@@ -1,0 +1,76 @@
+<div class="flex flex-col h-full max-h-[90vh] bg-white overflow-hidden">
+  <!-- Header -->
+  <div class="flex items-center justify-between p-3 border-b border-gray-200">
+    <div class="flex items-center gap-3">
+      <img
+        [src]="data.userProfile?.profileImageUrl || data.post.profileImage || 'https://via.placeholder.com/32'"
+        alt="Profile"
+        class="w-8 h-8 rounded-full"
+      />
+      <span class="font-semibold text-sm">{{ data.userProfile?.username || data.post.username }}</span>
+    </div>
+    <button mat-dialog-close class="text-gray-500 hover:text-black">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="flex-1 overflow-y-auto">
+    <img [src]="data.post.postImage" alt="Post" class="w-full object-contain bg-black" />
+    
+    <div class="p-3">
+      <div class="flex gap-4 mb-2">
+        <p class="text-sm">
+          <span class="font-semibold">{{ data.userProfile?.username || data.post.username }}</span>
+          {{ data.post.caption }}
+        </p>
+      </div>
+      <p class="text-gray-500 text-xs mb-4">{{ getTimeAgo(data.post.timestamp) }}</p>
+
+      <div class="border-t border-gray-100 pt-3">
+        <h3 class="font-semibold text-sm mb-3">Comments</h3>
+        
+        @if (comments().length === 0) {
+          <p class="text-gray-500 text-sm italic">No comments yet.</p>
+        } @else {
+          <div class="space-y-4">
+            @for (comment of comments(); track comment.id) {
+              <div class="flex gap-3">
+                <img [src]="comment.profileImage || 'https://via.placeholder.com/32'" class="w-6 h-6 rounded-full" alt="" />
+                <div>
+                  <p class="text-sm">
+                    <span class="font-semibold mr-2">{{ comment.username }}</span>
+                    {{ comment.text }}
+                  </p>
+                  <p class="text-gray-400 text-[10px] mt-1">{{ getTimeAgo(comment.timestamp) }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer: Comment Input -->
+  <div class="p-3 border-t border-gray-200">
+    <form (ngSubmit)="onAddComment()" class="flex gap-2">
+      <input
+        type="text"
+        [(ngModel)]="commentText"
+        name="commentText"
+        placeholder="Add a comment..."
+        class="flex-1 text-sm outline-none focus:ring-0"
+      />
+      <button 
+        type="submit" 
+        [disabled]="!commentText.trim()"
+        class="text-blue-500 font-semibold text-sm disabled:opacity-50"
+      >
+        Post
+      </button>
+    </form>
+  </div>
+</div>
