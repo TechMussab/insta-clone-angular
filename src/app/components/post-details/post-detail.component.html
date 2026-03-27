@@ -21,13 +21,37 @@
     <img [src]="data.post.postImage" alt="Post" class="w-full object-contain bg-black" />
     
     <div class="p-3">
+      <!-- Action Buttons -->
+      <div class="flex gap-4 mb-3">
+        <button (click)="toggleLike()" class="hover:opacity-70">
+          <svg
+            class="w-7 h-7"
+            [class.fill-red-500]="isLiked()"
+            [class.stroke-red-500]="isLiked()"
+            [class.fill-none]="!isLiked()"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        </button>
+        <button class="hover:opacity-70">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Likes Count -->
+      <p class="font-semibold text-sm mb-2">{{ data.post.likedBy.length }} likes</p>
+
       <div class="flex gap-4 mb-2">
         <p class="text-sm">
           <span class="font-semibold">{{ data.userProfile?.username || data.post.username }}</span>
           {{ data.post.caption }}
         </p>
       </div>
-      <p class="text-gray-500 text-xs mb-4">{{ getTimeAgo(data.post.timestamp) }}</p>
+      <p class="text-gray-500 text-xs mb-4">{{ data.post.timestamp | timeAgo }}</p>
 
       <div class="border-t border-gray-100 pt-3">
         <h3 class="font-semibold text-sm mb-3">Comments</h3>
@@ -44,7 +68,7 @@
                     <span class="font-semibold mr-2">{{ comment.username }}</span>
                     {{ comment.text }}
                   </p>
-                  <p class="text-gray-400 text-[10px] mt-1">{{ getTimeAgo(comment.timestamp) }}</p>
+                  <p class="text-gray-400 text-[10px] mt-1">{{ comment.timestamp | timeAgo }}</p>
                 </div>
               </div>
             }

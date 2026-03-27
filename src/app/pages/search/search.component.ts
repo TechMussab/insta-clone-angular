@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
@@ -6,13 +6,16 @@ import { RouterLink } from '@angular/router';
 import { Firestore, collection, query, where, getDocs, limit, orderBy } from '@angular/fire/firestore';
 import { AuthService } from '../../services/auth.service';
 import { User, Post } from '../../models';
+import { PostUiService } from '../../services/post-ui.service';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, RouterLink],
+  imports: [CommonModule, FormsModule, NavbarComponent, RouterLink, MatDialogModule],
   templateUrl: './search.component.html',
-  styleUrl: './search.component.scss'
+  styleUrl: './search.component.scss',
+  encapsulation: ViewEncapsulation.None
 })
 export class SearchComponent implements OnInit {
   searchQuery = '';
@@ -21,6 +24,7 @@ export class SearchComponent implements OnInit {
 
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
+  private postUiService = inject(PostUiService);
 
   ngOnInit() {
     this.loadExplorePosts();
@@ -31,6 +35,10 @@ export class SearchComponent implements OnInit {
     const q = query(postsRef, orderBy('timestamp', 'desc'), limit(30));
     const querySnapshot = await getDocs(q);
     this.filteredPosts.set(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
+  }
+
+  protected openPostDetail(post: Post): void {
+    this.postUiService.openDetail(post);
   }
 
   async onSearch() {

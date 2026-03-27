@@ -6,13 +6,14 @@ import { Post, User } from '../../models';
 import { PostService } from '../../services/post.service';
 import { AuthService } from '../../services/auth.service';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { PostDetailComponent } from '../post-details/post-detail.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { PostUiService } from '../../services/post-ui.service';
+import { TimeAgoPipe } from '../post-details/time-ago.pipe';
 
 @Component({
   selector: 'app-post-item',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, MatDialogModule],
+  imports: [CommonModule, RouterLink, FormsModule, MatDialogModule, TimeAgoPipe],
   templateUrl: './post-item.component.html',
   styleUrl: './post-item.component.scss',
   encapsulation: ViewEncapsulation.None
@@ -22,7 +23,7 @@ export class PostItemComponent implements OnInit {
   userProfile = signal<User | null>(null);
 
   private firestore = inject(Firestore);
-  private dialog = inject(MatDialog);
+  private postUiService = inject(PostUiService);
 
   constructor(
     private postService: PostService,
@@ -38,16 +39,7 @@ export class PostItemComponent implements OnInit {
   }
 
   openPostDetail() {
-    this.dialog.open(PostDetailComponent, {
-      data: { 
-        post: this.post, 
-        userProfile: this.userProfile() 
-      },
-      width: '100%',
-      maxWidth: '600px',
-      maxHeight: '90vh',
-      backdropClass: 'insta-backdrop'
-    });
+    this.postUiService.openDetail(this.post, this.userProfile());
   }
 
   isLiked() {
@@ -57,16 +49,5 @@ export class PostItemComponent implements OnInit {
 
   async toggleLike() {
     await this.postService.toggleLike(this.post.id);
-  }
-
-  getTimeAgo(timestamp: number): string {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
   }
 }

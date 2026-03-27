@@ -38,6 +38,6 @@
       {{ post.caption }}
     </p>
 
-    <p class="text-gray-500 text-xs mt-2 mb-3">{{ getTimeAgo(post.timestamp) }}</p>
+    <p class="text-gray-500 text-xs mt-2 mb-3">{{ post.timestamp | timeAgo }}</p>
   </div>
 </div>

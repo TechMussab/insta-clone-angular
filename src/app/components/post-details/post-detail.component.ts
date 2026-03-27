@@ -6,11 +6,13 @@ import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { Firestore, collection, query, orderBy, onSnapshot, Unsubscribe } from '@angular/fire/firestore';
 import { Post, Comment, User } from '../../models';
 import { PostService } from '../../services/post.service';
+import { AuthService } from '../../services/auth.service';
+import { TimeAgoPipe } from './time-ago.pipe';
 
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatDialogModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatDialogModule, TimeAgoPipe],
   templateUrl: './post-detail.component.html',
   styleUrl: './post-detail.component.scss'
 })
@@ -20,6 +22,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   
   private firestore = inject(Firestore);
   private postService = inject(PostService);
+  private authService = inject(AuthService);
   private commentsUnsubscribe?: Unsubscribe;
 
   constructor(
@@ -40,6 +43,15 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  isLiked() {
+    const currentUser = this.authService.currentUser();
+    return currentUser ? this.data.post.likedBy.includes(currentUser.uid) : false;
+  }
+
+  async toggleLike() {
+    await this.postService.toggleLike(this.data.post.id);
+  }
+
   async onAddComment() {
     if (!this.commentText.trim()) return;
     await this.postService.addComment(this.data.post.id, this.commentText);
@@ -50,16 +62,5 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     if (this.commentsUnsubscribe) {
       this.commentsUnsubscribe();
     }
-  }
-
-  getTimeAgo(timestamp: number): string {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
   }
 }
