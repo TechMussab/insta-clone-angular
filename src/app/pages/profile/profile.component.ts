@@ -1,10 +1,11 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { Firestore, doc, getDoc, collection, query, where, getDocs, orderBy } from '@angular/fire/firestore';
 import { User, Post } from '../../models';
 import { AuthService } from '../../services/auth.service';
+import { ChatService } from '../../services/chat.service';
 
 @Component({
   selector: 'app-profile',
@@ -16,6 +17,8 @@ import { AuthService } from '../../services/auth.service';
 export class ProfileComponent implements OnInit {
   private firestore = inject(Firestore);
   public authService = inject(AuthService);
+  private chatService = inject(ChatService);
+  private router = inject(Router);
 
   username = signal('');
   bio = signal('');
@@ -24,6 +27,7 @@ export class ProfileComponent implements OnInit {
   followerCount = signal(0);
   followingCount = signal(0);
   posts = signal<Post[]>([]);
+  currentProfileUserId = signal('');
 
   constructor(private route: ActivatedRoute) {}
 
@@ -37,6 +41,8 @@ export class ProfileComponent implements OnInit {
   }
 
   async loadProfile(userId: string) {
+    this.currentProfileUserId.set(userId);
+
     // 1. Load User Data
     const userDoc = await getDoc(doc(this.firestore, 'users', userId));
     if (userDoc.exists()) {
@@ -65,5 +71,15 @@ export class ProfileComponent implements OnInit {
     const followingQuery = query(collection(this.firestore, 'follows'), where('followerId', '==', userId));
     const followingSnapshot = await getDocs(followingQuery);
     this.followingCount.set(followingSnapshot.size);
+  }
+
+  isOwnProfile(): boolean {
+    const currentUser = this.authService.currentUser();
+    return currentUser?.uid === this.currentProfileUserId();
+  }
+
+  async openChat() {
+    const chatId = await this.chatService.createChat(this.currentProfileUserId());
+    this.router.navigate(['/chat', chatId]);
   }
 }

@@ -7,9 +7,24 @@
       </div>
       <div class="overflow-y-auto">
         @for (chat of chatService.chats(); track chat.id) {
-          <div class="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-200">
-            <p class="font-semibold">Chat {{ chat.id }}</p>
-          </div>
+          <a
+            [routerLink]="['/chat', chat.id]"
+            routerLinkActive="bg-gray-100"
+            class="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-200 flex items-center gap-3 block"
+          >
+            <img
+              [src]="chat.otherUser?.profileImageUrl || 'assets/default-profile.png'"
+              alt="Profile"
+              class="w-12 h-12 rounded-full object-cover"
+            />
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold truncate">{{ chat.otherUser?.username || 'User' }}</p>
+              <p class="text-sm text-gray-500 truncate">{{ chat.lastMessage || 'No messages yet' }}</p>
+            </div>
+            @if (chat.timestamp) {
+              <span class="text-xs text-gray-400">{{ chat.timestamp | timeAgo }}</span>
+            }
+          </a>
         }
       </div>
     </div>
@@ -18,12 +33,18 @@
         @for (message of chatService.messages(); track message.id) {
           <div class="mb-4" [class.text-right]="message.senderId === currentUserId">
             <div
-              class="inline-block px-4 py-2 rounded-lg"
+              class="inline-block px-4 py-2 rounded-lg max-w-xs"
               [class.bg-blue-500]="message.senderId === currentUserId"
               [class.text-white]="message.senderId === currentUserId"
               [class.bg-gray-200]="message.senderId !== currentUserId"
             >
-              {{ message.text }}
+              @if (message.imageUrl) {
+                <img [src]="message.imageUrl" alt="Image" class="rounded-lg mb-2 max-w-full" />
+              }
+              @if (message.text) {
+                <p>{{ message.text }}</p>
+              }
+              <span class="text-xs opacity-70 block mt-1">{{ message.timestamp | timeAgo }}</span>
             </div>
           </div>
         }
