@@ -1,5 +1,5 @@
 import { Injectable, signal, OnDestroy } from '@angular/core';
-import { Firestore, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, arrayUnion, arrayRemove, getDocs, Unsubscribe } from '@angular/fire/firestore';
+import { Firestore, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, arrayUnion, arrayRemove, getDocs, Unsubscribe, Timestamp } from '@angular/fire/firestore';
 import { Post, Comment } from '../models';
 import { AuthService } from './auth.service';
 
@@ -74,7 +74,7 @@ export class PostService implements OnDestroy {
       postImage,
       caption,
       likedBy: [],
-      timestamp: Date.now()
+      timestamp: Timestamp.now()
     };
 
     await addDoc(collection(this.firestore, 'posts'), post);
@@ -107,7 +107,7 @@ export class PostService implements OnDestroy {
       username: currentUser.username,
       profileImage: currentUser.profileImageUrl,
       text,
-      timestamp: Date.now()
+      timestamp: Timestamp.now()
     };
 
     await addDoc(collection(this.firestore, `posts/${postId}/comments`), comment);

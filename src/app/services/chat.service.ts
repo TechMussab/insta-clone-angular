@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { Firestore, collection, query, where, orderBy, onSnapshot, addDoc, getDocs, doc, setDoc, getDoc } from '@angular/fire/firestore';
+import { Firestore, collection, query, where, orderBy, onSnapshot, addDoc, getDocs, doc, setDoc, getDoc, Timestamp } from '@angular/fire/firestore';
 import { Chat, Message } from '../models';
 import { AuthService } from './auth.service';
 
@@ -47,8 +47,14 @@ export class ChatService {
       });
 
       const chatsWithProfiles = await Promise.all(chatPromises);
-      // Sort by timestamp descending (most recent first)
-      chatsWithProfiles.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      console.log('Loaded chats with profiles:', chatsWithProfiles);
+      // Sort by timestamp descending (newest first) to match the Firestore query and typical chat inbox behavior
+      chatsWithProfiles.sort((a, b) => {
+        const aTime = a.timestamp instanceof Timestamp ? a.timestamp.toMillis() : (typeof a.timestamp === 'number' ? a.timestamp : 0);
+        const bTime = b.timestamp instanceof Timestamp ? b.timestamp.toMillis() : (typeof b.timestamp === 'number' ? b.timestamp : 0);
+        
+        return bTime - aTime;
+      });
       this.chats.set(chatsWithProfiles);
     });
   }
@@ -66,6 +72,7 @@ export class ChatService {
         id: doc.id,
         ...doc.data()
       } as Message));
+      console.log('Loaded messages:', messages);
       this.messages.set(messages);
     });
   }
@@ -78,16 +85,16 @@ export class ChatService {
       senderId: currentUser.uid,
       receiverId,
       text,
-      timestamp: Date.now()
+      timestamp: Timestamp.now()
     };
 
     // Add message to chats collection
     await addDoc(collection(this.firestore, `chats/${chatId}/messages`), message);
 
-    // Update recent_chats for chat list
+    // Update recent_chats for chat list - use Firestore Timestamp like Android
     await setDoc(doc(this.firestore, 'recent_chats', chatId), {
       lastMessage: text,
-      timestamp: Date.now(),
+      timestamp: Timestamp.now(),
       users: [currentUser.uid, receiverId]
     }, { merge: true });
   }
@@ -112,7 +119,7 @@ export class ChatService {
     await setDoc(doc(this.firestore, 'recent_chats', chatId), {
       users: [currentUser.uid, participantId],
       lastMessage: '',
-      timestamp: Date.now()
+      timestamp: Timestamp.now()
     });
 
     return chatId;

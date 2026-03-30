@@ -1,3 +1,5 @@
+import { Timestamp } from '@angular/fire/firestore';
+
 export interface Post {
   id: string;
   userId: string;
@@ -6,5 +8,5 @@ export interface Post {
   postImage: string;
   caption: string;
   likedBy: string[];
-  timestamp: number;
+  timestamp: Timestamp;
 }

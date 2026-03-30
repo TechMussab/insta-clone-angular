@@ -42,7 +42,7 @@ export class ChatComponent implements OnInit {
     if (!this.messageText.trim() || !this.chatId) return;
 
     // Find the current chat to identify the receiver
-    const chat = this.chatService.chats().find(c => c.id === this.chatId) as any;
+    const chat = this.chatService.chats().find(c => c.id === this.chatId);
     const receiverId = chat?.users?.find((id: string) => id !== this.currentUserId) || '';
 
     await this.chatService.sendMessage(this.chatId, receiverId, this.messageText);
