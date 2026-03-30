@@ -47,7 +47,6 @@ export class ChatService {
       });
 
       const chatsWithProfiles = await Promise.all(chatPromises);
-      console.log('Loaded chats with profiles:', chatsWithProfiles);
       // Sort by timestamp descending (newest first) to match the Firestore query and typical chat inbox behavior
       chatsWithProfiles.sort((a, b) => {
         const aTime = a.timestamp instanceof Timestamp ? a.timestamp.toMillis() : (typeof a.timestamp === 'number' ? a.timestamp : 0);
@@ -72,7 +71,6 @@ export class ChatService {
         id: doc.id,
         ...doc.data()
       } as Message));
-      console.log('Loaded messages:', messages);
       this.messages.set(messages);
     });
   }

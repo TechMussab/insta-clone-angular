@@ -18,7 +18,6 @@ export class PostService implements OnDestroy {
 
   async loadFeed() {
     const currentUser = this.authService.currentUser();
-    console.log("debug: ",currentUser);
     if (!currentUser) return;
 
     // Unsubscribe from existing feed if active to prevent leaks
