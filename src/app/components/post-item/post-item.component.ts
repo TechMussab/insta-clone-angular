@@ -20,15 +20,12 @@ import { TimeAgoPipe } from '../post-details/time-ago.pipe';
 })
 export class PostItemComponent implements OnInit {
   @Input({ required: true }) post!: Post;
-  userProfile = signal<User | null>(null);
+  protected readonly userProfile = signal<User | null>(null);
 
-  private firestore = inject(Firestore);
-  private postUiService = inject(PostUiService);
-
-  constructor(
-    private postService: PostService,
-    private authService: AuthService
-  ) {}
+  private readonly firestore = inject(Firestore);
+  private readonly postUiService = inject(PostUiService);
+  private readonly postService = inject(PostService);
+  private readonly authService = inject(AuthService);
 
   async ngOnInit() {
     // Fetch the latest user profile data to ensure we show the current profile picture

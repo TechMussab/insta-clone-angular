@@ -17,17 +17,15 @@ import { TimeAgoPipe } from './time-ago.pipe';
   styleUrl: './post-detail.component.scss'
 })
 export class PostDetailComponent implements OnInit, OnDestroy {
-  comments = signal<Comment[]>([]);
-  commentText = '';
+  protected readonly comments = signal<Comment[]>([]);
+  protected commentText = '';
   
-  private firestore = inject(Firestore);
-  private postService = inject(PostService);
-  private authService = inject(AuthService);
+  private readonly firestore = inject(Firestore);
+  private readonly postService = inject(PostService);
+  private readonly authService = inject(AuthService);
+  readonly data = inject<{ post: Post; userProfile: User | null }>(MAT_DIALOG_DATA);
+  
   private commentsUnsubscribe?: Unsubscribe;
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { post: Post; userProfile: User | null }
-  ) {}
 
   ngOnInit() {
     this.loadComments();
